@@ -6,6 +6,8 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -37,7 +39,7 @@ public class roadrunnertest extends LinearOpMode {
         //leftTilt = hardwareMap.get(DcMotor.class, "lefttilt");
         //leftExtend = hardwareMap.get(DcMotor.class, "leftextend");
         //rightExtend = hardwareMap.get(DcMotor.class, "rightextend");
-        Pose2d initialPose = new Pose2d(11.8, 61.7, Math.toRadians(90));
+        Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
         rightLift rightLift = new rightLift(hardwareMap);
@@ -51,11 +53,15 @@ public class roadrunnertest extends LinearOpMode {
         //     everything else is for set up purposes only             //
         //###############################################################
 
-
-
+        waitForStart();
+        TrajectoryActionBuilder Auto= drive.actionBuilder(initialPose)
+                .splineTo(new Vector2d(12, 12), 0)
+                .waitSeconds(2)
+                .splineTo(new Vector2d(0, 0), 90);
         Actions.runBlocking(
                 new SequentialAction(
-                        leftLift.tilt(32.3)
+                        Auto.build(),
+                        leftLift.tilt(45.0)
                 )
         );
 
@@ -160,14 +166,41 @@ public class roadrunnertest extends LinearOpMode {
         public intake(HardwareMap hardwareMap){
             Intake = hardwareMap.get(CRServo.class, "intake");
         }
-        public void in(){
-            Intake.setPower(-1);
+        public Action in(){
+
+            class In implements Action {
+
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    Intake.setPower(-1);
+                    return true;
+                }
+            }
+            return new In();
         }
-        public void out(){
-            Intake.setPower(1);
+        public Action out(){
+
+            class Out implements Action {
+
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    Intake.setPower(1);
+                    return true;
+                }
+            }
+            return new Out();
         }
-        public void stop(){
-            Intake.setPower(0);
+        public Action stop(){
+
+            class Stop implements Action {
+
+                @Override
+                public boolean run(@NonNull TelemetryPacket packet) {
+                    Intake.setPower(0);
+                    return true;
+                }
+            }
+            return new Stop();
         }
 
     }
